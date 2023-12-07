@@ -40,14 +40,17 @@ public static class NestedDisposablesTestModeExtensions
             case NestedDisposablesTestMode.EXCEPTION:
                 return new AnonymousDisposable(() => throw new Exception($"exception of {mode}"));
         }
-        throw new ArgumentException($"unknown mode: { mode }");
+
+        throw new ArgumentException($"unknown mode: {mode}");
     }
 }
 
 public delegate void Close();
 
 [CollectionDefinition("NestedDisposablesTest")]
-public class NestedDisposablesCollectionTest: ICollectionFixture<NestedDisposablesTest> {}
+public class NestedDisposablesCollectionTest : ICollectionFixture<NestedDisposablesTest>
+{
+}
 
 [Collection("NestedDisposablesTest")]
 public class DeepNestedDisposablesTest
@@ -69,6 +72,7 @@ public class DeepNestedDisposablesTest
         {
             disposable = disposable.Add(_fixture.GetDisposable(NestedDisposablesTestMode.NO_EXCEPTION));
         }
+
         Assert.Equal(1000, disposable.Depth);
         disposable.Dispose();
     }
@@ -83,8 +87,40 @@ public class DeepNestedDisposablesTest
         {
             disposable = disposable.Add(_fixture.GetDisposable(NestedDisposablesTestMode.NO_EXCEPTION));
         }
+
         disposable = disposable.Add(_fixture.GetDisposable(NestedDisposablesTestMode.EXCEPTION));
         Assert.Equal(1000, disposable.Depth);
         disposable.Dispose();
+    }
+}
+
+[Collection("NestedDisposablesTest")]
+public class DeepNestedDisposableInDisposable : IDisposable
+{
+    private readonly NestedDisposable _disposable;
+
+    public DeepNestedDisposableInDisposable(NestedDisposablesTest fixture)
+    {
+        var first = fixture.GetDisposable(NestedDisposablesTestMode.NO_EXCEPTION);
+        var second = fixture.GetDisposable(NestedDisposablesTestMode.NO_EXCEPTION);
+        var disposable = new NestedDisposable(first, second);
+        for (int i = 0; i < 999; i++)
+        {
+            disposable = disposable.Add(fixture.GetDisposable(NestedDisposablesTestMode.NO_EXCEPTION));
+        }
+
+        disposable = disposable.Add(fixture.GetDisposable(NestedDisposablesTestMode.EXCEPTION));
+        _disposable = disposable;
+    }
+
+    [Fact]
+    public void RunTest()
+    {
+        Assert.Equal(1000, _disposable.Depth);
+    }
+
+    public void Dispose()
+    {
+        _disposable.Dispose();
     }
 }
