@@ -1,3 +1,5 @@
+using MyFirstExampleApp.Values;
+
 namespace MyFirstExampleApp.Tests;
 
 public class StringGivenFive
