@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu
           - windows
+          - ubuntu
           - macos
         dotnet-version:
           - "7.0"
