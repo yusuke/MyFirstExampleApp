@@ -19,3 +19,6 @@ riderModule.iml
 /dataSources.local.xml
 
 MyFirstExampleApp.sln.DotSettings.user
+
+build/
+.idea/

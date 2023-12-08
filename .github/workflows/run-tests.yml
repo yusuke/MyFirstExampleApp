@@ -1,0 +1,59 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+  workflow_dispatch: { }
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          - windows
+          - macos
+        dotnet-version:
+          - "7.0"
+    runs-on: "${{ matrix.os }}-latest"
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-${{ matrix.dotnet-version }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.dotnet-version }}-nuget
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: |
+          dotnet \
+            test \
+            --no-build \
+            --logger "trx;LogFileName=results-${{ matrix.os }}-${{ matrix.dotnet-version }}.trx" \
+            --results-directory "build"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Results
+          path: "build/"
