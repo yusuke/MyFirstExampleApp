@@ -8,6 +8,7 @@ public class MyAsyncTest: IDisposable
     public async Task TestRun()
     {
         var result = await _myAsync.Run(()=> "Example", new TimeSpan(0, 0, 2));
+        
         Assert.Equal("Example", result);
     }
 
