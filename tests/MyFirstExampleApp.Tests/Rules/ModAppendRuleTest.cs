@@ -45,6 +45,7 @@ public class ModAppendRuleApplicableTest : IClassFixture<ModAppendRuleTest>
         Value given = new StringGiven(5, "Test");
         Value result = _rule.Apply(given);
         Assert.NotEqual(given, result);
+        System.Console.WriteLine("hello world");
         Assert.Equal("Test", result.AsString());
     }
 }
